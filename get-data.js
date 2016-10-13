@@ -38,6 +38,7 @@ ${counterFormatted}. Getting data from link ${url}
       let $ = cheerio.load(body);
       let temp = [];
       // TO DO
+      
 
 
       ++successCounter;

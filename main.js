@@ -29,7 +29,7 @@ const dummyLinkData = [
 // ------------------------------------------------------
 // ----------- global settings --------------------------
 const targetArtLinkStem = `http://www.artvalue.com/`;
-const filesDir = `C:/crawling/`;
+const filesDir = `C:/crawl/`;
 const queryLinksUri = filesDir + "test.csv";
 const artLinksUri = filesDir + "artLinks.csv";
 const outputDataUri = filesDir + "outputData.csv";
@@ -104,16 +104,27 @@ if (MODE.extractArtData) {
   let artLinks = dummyLinkData; // []; // for all links in artLinksUri file
   /// format of data:
   /// [url1, url2, ...]
-  let data = []; // array of objects for data collection
-  /// format of data:
-  /// [
-  ///  {
-  ///   TO DO
-  ///
-  ///  }, {
-  ///
-  ///  }, ...
-  /// ]
+  let dataHeader = [
+    ["0-3_Header",
+    "4_Auction House",
+    "5_Lot Number",
+    "6_Artist",
+    "7_Artist's Birth",
+    "8_Artist's Death",
+    "9_Artist Country of Origin",
+    "10_Title",
+    "11_Year of Creation",
+    "12_Signature",
+    "13_Category",
+    "14_Medium",
+    "15_Height (in cm)",
+    "16_Breadth (in cm)",
+    "17_Depth (in cm)",
+    "18_Estimated Price Low",
+    "19_Estimated Price High",
+    "20_Sales Price",
+    "21_Picture of Artwork",
+    "22_Publication"]; // first line of csv file containing column headers
 
   const dataSavingFunc = (payload, dest) => {
     // fs.open(dest, "w+", (err, fd) => {

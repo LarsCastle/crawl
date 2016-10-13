@@ -28,7 +28,7 @@ Getting links for query ${url}
   let crawledCounter = 0; // # crawled search result pages
 
   for (let i = 1; i <= pageCount; ++i) { // for every page of search results
-    console.log(`Requesting page ${i}/${pageCount}...`);
+    // console.log(`Requesting page ${i}/${pageCount}...`);
     fullUrl = i===1 ? url : url+"&page="+i;
     request(fullUrl,function(error, response, body) {
       if (error) {
@@ -36,7 +36,6 @@ Getting links for query ${url}
         ++failureCounter;
         failures.push(fullUrl);
       } else {
-        console.log(`Loaded page ${i}/${pageCount} successfully.`);
         let $ = cheerio.load(body);
 
         const linkElems = $("td[height='75'] a.typonoirbold12");
@@ -51,7 +50,7 @@ Getting links for query ${url}
             links.push(temp);
             // console.log(`${i+1}. Found  ${temp}`);
           });
-          console.log(`${linkElems.length} added to list of links for current URL (n=${links.length} now)`);
+          console.log(`Loaded page ${i}/${pageCount} successfully. ${linkElems.length} -> list (n=${links.length} now)`);
           ++successCounter;
         }
         ++crawledCounter;
