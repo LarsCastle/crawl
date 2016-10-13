@@ -41,13 +41,19 @@ Getting links for query ${url}
 
         const linkElems = $("td[height='75'] a.typonoirbold12");
         // console.log(linkElems);
-        linkElems.each(function(i) {
-          let temp = stem + this.attribs.href;
-          links.push(temp);
-          console.log(`${i+1}. Found  ${temp}`);
-        });
-        console.log(`${linkElems.length} added to list of links for current URL (n=${links.length} now)`);
-        ++successCounter;
+        if (linkElems.length === 0) {
+          console.log("Error occurred: 0 links found on URL", fullUrl);
+          ++failureCounter;
+          failures.push(fullUrl);
+        } else {
+          linkElems.each(function(i) {
+            let temp = stem + this.attribs.href;
+            links.push(temp);
+            // console.log(`${i+1}. Found  ${temp}`);
+          });
+          console.log(`${linkElems.length} added to list of links for current URL (n=${links.length} now)`);
+          ++successCounter;
+        }
         ++crawledCounter;
         if (crawledCounter === pageCount) {
           exports.allLinks = exports.allLinks.concat(links);

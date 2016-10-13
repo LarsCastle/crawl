@@ -4,6 +4,7 @@ console.log("main.js start");
 // ------------------------------------------------------
 // ------------------- requires -------------------------
 const linkGetter = require("./get-links.js");
+const dataGetter = require("./get-data.js");
 const fs = require("fs");
 const parse = require("csv-parse");
 
@@ -60,18 +61,19 @@ if (MODE.findArtLinks) {
       }
     });
   };
-  const callGetter = (qs, i) => {
+
+  const callLinkGetter = (qs, i) => {
     console.log("Getting data - URL ", i+1);
     linkGetter.get(qs[i][0], qs[i][1], targetArtLinkStem);
     if (i < qs.length - 1) {
       setTimeout(() => {
         ++i;
-        callGetter(qs, i);
+        callLinkGetter(qs, i);
       }, (25  + Math.random()*10) * 1000);
     }
   }; // helper function to call linkGetter.get
 
-//    a) load queries from queryLinksUri
+  //    a) load queries from queryLinksUri
   fs.readFile(queryLinksUri, (err, data) => {
     if (err) {
       console.log(`Error occurred when reading ${queryLinksUri}: `, err);
@@ -82,24 +84,24 @@ if (MODE.findArtLinks) {
           console.log("Error occurred when parsing: ", error);
         } else {
           queries = out;
-          console.log(queries);
+          console.log(`Loaded ${queries.length} queries successfully.`);
 
-//    b) Execute linkGetter.get
+          //    b) Execute linkGetter.get
           let numUrls = queries.reduce((prev, curr, i, arr) => prev + curr[1], 0);
           linkGetter.init(linkSavingFunc, artLinksUri, numUrls);
           // set up linkGetter to save links after completion
-          callGetter(queries, 0);
+          callLinkGetter(queries, 0);
         }
       });
     }
   });
-//    c) Append new links to artLinksUri
+  //    c) Append new links to artLinksUri
   // done in callback within linkGetter. Callback is defined as "linkSavingFunc" above
 }
 
 // 2. If MODE.extractArtData:
 if (MODE.extractArtData) {
-  let artLinks = []; // for all links in artLinksUri file
+  let artLinks = dummyLinkData; // []; // for all links in artLinksUri file
   /// format of data:
   /// [url1, url2, ...]
   let data = []; // array of objects for data collection
@@ -112,10 +114,58 @@ if (MODE.extractArtData) {
   ///
   ///  }, ...
   /// ]
+
+  const dataSavingFunc = (payload, dest) => {
+    // fs.open(dest, "w+", (err, fd) => {
+    //   if (err) {
+    //     console.log("Error when creating / opening file: ", err);
+    //   } else {
+    //     console.log("Successfully opened file ", dest);
+    //     fs.write(fd, payload.join("\n"), (err, written, str) => {
+    //       if (err) {
+    //         console.log("Error occurred when writing to file: ", err);
+    //       } else {
+    //         console.log("Successfully written data to file ", dest);
+    //       }
+    //     });
+    //   }
+    // });
+    console.log(payload);
+  };
+  const callDataGetter = (qs, i) => {
+    console.log("Crawling art object data - URL ", i+1);
+    dataGetter.get(qs[i]);
+    if (i < qs.length - 1) {
+      setTimeout(() => {
+        ++i;
+        callDataGetter(qs, i);
+      }, (2  + Math.random()*1) * 1000);
+    }
+  }; // helper function to call linkGetter.get
+
 //    a) load artLinks from artLinksUri
-  // TO DO
-//    b) Execute artDataGetter.get
-  // TO DO
+  // fs.readFile(artLinksUri, (err, data) => {
+  //   if (err) {
+  //     console.log(`Error occurred when reading ${artLinksUri}: `, err);
+  //   } else {
+  //     console.log("Successfully read file ", artLinksUri);
+  //     parse(data, {auto_parse: false}, (error, out) => {
+  //       if (error) {
+  //         console.log("Error occurred when parsing: ", error);
+  //       } else {
+  //         artLinks = out;
+          console.log(`Loaded ${artLinks.length} links successfully.`);
+
+//    b) Execute dataGetter.get
+          let numUrls = artLinks.length;
+          dataGetter.init(dataSavingFunc, outputDataUri, numUrls);
+          // set up dataGetter to save links after completion
+          callDataGetter(artLinks, 0);
+  //    }
+  //  });
+  // }
+  // });
+
 //    c) Append new data to outputDataUri
   // TO DO
 }
