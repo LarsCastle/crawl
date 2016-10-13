@@ -12,15 +12,15 @@ const parse = require("csv-parse");
 // // temporary test data until I build a link import module
 
 const dummyLinkData = [
-  `http://www.artvalue.com/auctionresult--villa-edoardo-eduardo-1920-sou-standing-figure-i-4370365.htm`,
-  `http://www.artvalue.com/auctionresult--legae-ezrom-kgobokanyo-sebata-loneliness-4370360.htm`,
-  `http://www.artvalue.com/auctionresult--villa-edoardo-eduardo-1920-sou-maquette-for-reclining-figure-4370349.htm`,
-  `http://www.artvalue.com/auctionresult--kumalo-sidney-alex-1935-1988-s-cock-4370342.htm`,
-  `http://www.artvalue.com/auctionresult--goldblatt-david-1930-south-afr-railway-shunter-from-the-some-4370339.htm`,
-  `http://www.artvalue.com/auctionresult--goldblatt-david-1930-south-afr-nyasa-miners-from-the-on-the-m-4370333.htm`,
-  `http://www.artvalue.com/auctionresult--goldblatt-david-1930-south-afr-in-the-kitchen-at-1510-emdeni-4370317.htm`,
-  `http://www.artvalue.com/auctionresult--goldblatt-david-1930-south-afr-troyeville-hillbrow-johannesbu-4370309.htm`,
-  `http://www.artvalue.com/auctionresult--goldblatt-david-1930-south-afr-on-the-bus-4370324.htm`,
+  // `http://www.artvalue.com/auctionresult--villa-edoardo-eduardo-1920-sou-standing-figure-i-4370365.htm`,
+  // `http://www.artvalue.com/auctionresult--legae-ezrom-kgobokanyo-sebata-loneliness-4370360.htm`,
+  // `http://www.artvalue.com/auctionresult--villa-edoardo-eduardo-1920-sou-maquette-for-reclining-figure-4370349.htm`,
+  // `http://www.artvalue.com/auctionresult--kumalo-sidney-alex-1935-1988-s-cock-4370342.htm`,
+  // `http://www.artvalue.com/auctionresult--goldblatt-david-1930-south-afr-railway-shunter-from-the-some-4370339.htm`,
+  // `http://www.artvalue.com/auctionresult--goldblatt-david-1930-south-afr-nyasa-miners-from-the-on-the-m-4370333.htm`,
+  // `http://www.artvalue.com/auctionresult--goldblatt-david-1930-south-afr-in-the-kitchen-at-1510-emdeni-4370317.htm`,
+  // `http://www.artvalue.com/auctionresult--goldblatt-david-1930-south-afr-troyeville-hillbrow-johannesbu-4370309.htm`,
+  // `http://www.artvalue.com/auctionresult--goldblatt-david-1930-south-afr-on-the-bus-4370324.htm`,
   `http://www.artvalue.com/auctionresult--goldblatt-david-1930-south-afr-greaser-no-2-north-steam-winde-4370304.htm`
 ];
 
@@ -34,8 +34,8 @@ const queryLinksUri = filesDir + "test.csv";
 const artLinksUri = filesDir + "artLinks.csv";
 const outputDataUri = filesDir + "outputData.csv";
 const MODE = {
-  "findArtLinks": true,
-  "extractArtData": false
+  "findArtLinks": false,
+  "extractArtData": true
 }; // activates subfunctions
 
 // ------------------------------------------------------
@@ -104,24 +104,26 @@ if (MODE.extractArtData) {
   let artLinks = dummyLinkData; // []; // for all links in artLinksUri file
   /// format of data:
   /// [url1, url2, ...]
-  let dataHeader = [
+  let dataHeader =
     ["0-3_Header",
     "4_Auction House",
     "5_Lot Number",
-    "6_Artist",
-    "7_Artist's Birth",
-    "8_Artist's Death",
-    "9_Artist Country of Origin",
+    "6-9_Artist line",
+    // "7_Artist's Birth",
+    // "8_Artist's Death",
+    // "9_Artist Country of Origin",
     "10_Title",
     "11_Year of Creation",
     "12_Signature",
     "13_Category",
     "14_Medium",
-    "15_Height (in cm)",
-    "16_Breadth (in cm)",
-    "17_Depth (in cm)",
-    "18_Estimated Price Low",
-    "19_Estimated Price High",
+    "15-17_Dimensions",
+    // "15_Height (in cm)",
+    // "16_Breadth (in cm)",
+    // "17_Depth (in cm)",
+    "18-19 Estimated Price",
+    // "18_Estimated Price Low",
+    // "19_Estimated Price High",
     "20_Sales Price",
     "21_Picture of Artwork",
     "22_Publication"]; // first line of csv file containing column headers
@@ -141,7 +143,7 @@ if (MODE.extractArtData) {
     //     });
     //   }
     // });
-    console.log(payload);
+    // console.log(payload);
   };
   const callDataGetter = (qs, i) => {
     console.log("Crawling art object data - URL ", i+1);
