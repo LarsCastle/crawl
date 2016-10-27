@@ -3,19 +3,44 @@
 
 const request = require("request");
 const cheerio = require("cheerio");
+let cookieJars = {};
 
 exports.allData = [];
 let toDo = 0; // counts how many jobs have to be done
 let successCounter = 0; // counts how many jobs have successfully completed
 let failureCounter = 0; // counts failures
 let failures = []; // lists the failed URLs
-let saveLinks, saveDest; // saveLinks = callback for saving, saveDest = full URI that marks the file in which the links will be saved
+let saveLinks, saveDest; // saveLinks = callback for saving, saveDest = full URI that marks the file in which the data will be saved
+let cookieJar;
 let counter = 0;
 
-exports.init = (saveDataFunc, dest, numUrls) => {
+exports.init = (saveDataFunc, dest, numUrls, loginUrl, profile, callb) => {
   saveLinks = saveDataFunc;
   saveDest = dest;
   toDo = numUrls;
+  cookieJar = request.jar();
+  const options = {
+    url: loginUrl,
+    method: "GET",
+    form: {
+      id: 0,
+      login: profile.user,
+      password: profile.pw
+    },
+    jar: cookieJar
+  };
+  console.log("Options for init: ", options);
+
+  request(options, (err, r, b) => {
+    if (err) {
+      console.log("Error upon login attempt: ", err);
+      throw err;
+    } else {
+      // console.log(`User ${profile.user} logged in successfully. Cookies: ${cookieJar.getCookieString("http://www.artvalue.com")}`);
+      console.log("Callback to initialize crawling...");
+      callb();
+    }
+  });
 };
 
 // main function
@@ -29,7 +54,12 @@ exports.get = (url) => {
   counterFormatted += counter.toString();
   console.log(`${counterFormatted}. Getting data from link ${url}`);
 
-  request(url, (error, response, body) => {
+  request.cookie("ASP.NET_SessionId=c0i1xx34rfwyuxhh1k1jq5vg");
+
+  request({
+    url: url,
+    jar: cookieJar
+  }, (error, response, body) => {
     if (error) {
       console.log("Error occurred: ", error);
       ++failureCounter;
@@ -37,6 +67,7 @@ exports.get = (url) => {
     } else {
       console.log(`Loaded page #${counterFormatted} successfully`);
       let $ = cheerio.load(body);
+      console.log(body);
       let temp = [];
       let tempObj = {};
       // 0-3 Header

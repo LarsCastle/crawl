@@ -14,14 +14,14 @@ const parse = require("csv-parse");
 const dummyLinkData = [
   // `http://www.artvalue.com/auctionresult--villa-edoardo-eduardo-1920-sou-standing-figure-i-4370365.htm`,
   // `http://www.artvalue.com/auctionresult--legae-ezrom-kgobokanyo-sebata-loneliness-4370360.htm`,
-  // `http://www.artvalue.com/auctionresult--villa-edoardo-eduardo-1920-sou-maquette-for-reclining-figure-4370349.htm`,
-  // `http://www.artvalue.com/auctionresult--kumalo-sidney-alex-1935-1988-s-cock-4370342.htm`,
+  `http://www.artvalue.com/auctionresult--villa-edoardo-eduardo-1920-sou-maquette-for-reclining-figure-4370349.htm`,
+  `http://www.artvalue.com/auctionresult--kumalo-sidney-alex-1935-1988-s-cock-4370342.htm`
   // `http://www.artvalue.com/auctionresult--goldblatt-david-1930-south-afr-railway-shunter-from-the-some-4370339.htm`,
   // `http://www.artvalue.com/auctionresult--goldblatt-david-1930-south-afr-nyasa-miners-from-the-on-the-m-4370333.htm`,
   // `http://www.artvalue.com/auctionresult--goldblatt-david-1930-south-afr-in-the-kitchen-at-1510-emdeni-4370317.htm`,
   // `http://www.artvalue.com/auctionresult--goldblatt-david-1930-south-afr-troyeville-hillbrow-johannesbu-4370309.htm`,
   // `http://www.artvalue.com/auctionresult--goldblatt-david-1930-south-afr-on-the-bus-4370324.htm`,
-  `http://www.artvalue.com/auctionresult--goldblatt-david-1930-south-afr-greaser-no-2-north-steam-winde-4370304.htm`
+  // `http://www.artvalue.com/auctionresult--goldblatt-david-1930-south-afr-greaser-no-2-north-steam-winde-4370304.htm`
 ];
 
 // ------------------------------------------------------
@@ -33,6 +33,7 @@ const filesDir = `C:/crawl/`;
 const queryLinksUri = filesDir + "test.csv";
 const artLinksUri = filesDir + "artLinks.csv";
 const outputDataUri = filesDir + "outputData.csv";
+const loginUrl = targetArtLinkStem + "default.aspx";
 const MODE = {
   "findArtLinks": false,
   "extractArtData": true
@@ -128,6 +129,10 @@ if (MODE.extractArtData) {
     "21_Picture of Artwork",
     "22_Publication"]; // first line of csv file containing column headers
 
+  let profiles = [
+
+  ];
+
   const dataSavingFunc = (payload, dest) => {
     // fs.open(dest, "w+", (err, fd) => {
     //   if (err) {
@@ -171,9 +176,11 @@ if (MODE.extractArtData) {
 
 //    b) Execute dataGetter.get
           let numUrls = artLinks.length;
-          dataGetter.init(dataSavingFunc, outputDataUri, numUrls);
+          console.log(`Calling dataGetter.init with ${outputDataUri}, ${numUrls}, ${loginUrl}, ${profiles[1]}`);
+          dataGetter.init(dataSavingFunc, outputDataUri, numUrls, loginUrl, profiles[0], () => {
+            callDataGetter(artLinks, 0);
+          });
           // set up dataGetter to save links after completion
-          callDataGetter(artLinks, 0);
   //    }
   //  });
   // }
