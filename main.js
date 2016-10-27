@@ -9,29 +9,11 @@ const fs = require("fs");
 const parse = require("csv-parse");
 
 // ------------------------------------------------------
-// // temporary test data until I build a link import module
-
-const dummyLinkData = [
-  // `http://www.artvalue.com/auctionresult--villa-edoardo-eduardo-1920-sou-standing-figure-i-4370365.htm`,
-  // `http://www.artvalue.com/auctionresult--legae-ezrom-kgobokanyo-sebata-loneliness-4370360.htm`,
-  `http://www.artvalue.com/auctionresult--villa-edoardo-eduardo-1920-sou-maquette-for-reclining-figure-4370349.htm`,
-  `http://www.artvalue.com/auctionresult--kumalo-sidney-alex-1935-1988-s-cock-4370342.htm`
-  // `http://www.artvalue.com/auctionresult--goldblatt-david-1930-south-afr-railway-shunter-from-the-some-4370339.htm`,
-  // `http://www.artvalue.com/auctionresult--goldblatt-david-1930-south-afr-nyasa-miners-from-the-on-the-m-4370333.htm`,
-  // `http://www.artvalue.com/auctionresult--goldblatt-david-1930-south-afr-in-the-kitchen-at-1510-emdeni-4370317.htm`,
-  // `http://www.artvalue.com/auctionresult--goldblatt-david-1930-south-afr-troyeville-hillbrow-johannesbu-4370309.htm`,
-  // `http://www.artvalue.com/auctionresult--goldblatt-david-1930-south-afr-on-the-bus-4370324.htm`,
-  // `http://www.artvalue.com/auctionresult--goldblatt-david-1930-south-afr-greaser-no-2-north-steam-winde-4370304.htm`
-];
-
-// ------------------------------------------------------
-
-// ------------------------------------------------------
 // ----------- global settings --------------------------
 const targetArtLinkStem = `http://www.artvalue.com/`;
 const filesDir = `C:/crawling/`;
 const queryLinksUri = filesDir + "test.csv";
-const artLinksUri = filesDir + "testLinks.csv";
+const artLinksUri = filesDir + "artLinks-test.csv";
 const outputDataUri = filesDir + "outputData.csv";
 const loginUrl = targetArtLinkStem + "default.aspx";
 const MODE = {
@@ -130,7 +112,10 @@ if (MODE.extractArtData) {
     "22_Publication"]; // first line of csv file containing column headers
 
   let profiles = [
-
+    {
+      user: "",
+      pw: ""
+    }
   ];
 
   const dataSavingFunc = (payload, dest) => {
@@ -152,13 +137,13 @@ if (MODE.extractArtData) {
     // console.log(payload);
   };
   const callDataGetter = (qs, i) => {
-    console.log("Crawling art object data - URL ", i+1);
+    console.log("Querying URL ", i+1);
     dataGetter.get(qs[i]);
     if (i < qs.length - 1) {
       setTimeout(() => {
         ++i;
         callDataGetter(qs, i);
-      }, (2  + Math.random()*1) * 1000);
+      }, (1  + Math.random()*1) * 1000);
     }
   }; // helper function to call linkGetter.get
 
@@ -189,6 +174,6 @@ if (MODE.extractArtData) {
     }
   });
 
-//    c) Append new data to outputDataUri
-  // TO DO
+//    c) Save new data in outputDataUri
+// done in callback within dataGetter. Callback is defined as "dataSavingFunc" above
 }
