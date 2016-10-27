@@ -10,7 +10,7 @@ let toDo = 0; // counts how many jobs have to be done
 let successCounter = 0; // counts how many jobs have successfully completed
 let failureCounter = 0; // counts failures
 let failures = []; // lists the failed URLs
-let saveLinks, saveDest; // saveLinks = callback for saving, saveDest = full URI that marks the file in which the data will be saved
+let saveLinks, saveDest, outputHeader; // saveLinks = callback for saving, saveDest = full URI that marks the file in which the data will be saved
 let cookieJar;
 let counter = 0;
 
@@ -21,7 +21,7 @@ exports.init = (saveDataFunc, dest, numUrls, loginUrl, profile, callb) => {
   cookieJar = request.jar();
   const options = {
     url: loginUrl,
-    method: "GET",
+    method: "POST",
     form: {
       id: 0,
       login: profile.user,
@@ -29,22 +29,20 @@ exports.init = (saveDataFunc, dest, numUrls, loginUrl, profile, callb) => {
     },
     jar: cookieJar
   };
-  console.log("Options for init: ", options);
 
   request(options, (err, r, b) => {
     if (err) {
       console.log("Error upon login attempt: ", err);
       throw err;
     } else {
-      // console.log(`User ${profile.user} logged in successfully. Cookies: ${cookieJar.getCookieString("http://www.artvalue.com")}`);
-      console.log("Callback to initialize crawling...");
+      console.log(`User ${profile.user} logged in successfully. Cookies: ${cookieJar.getCookieString("http://www.artvalue.com")}`);
       callb();
     }
   });
 };
 
 // main function
-exports.get = (url) => {
+exports.get = (singleUrl) => {
   ++counter;
   let counterFormatted = "";
   let numZeroes = 6 - counter.toString().length;
@@ -52,22 +50,21 @@ exports.get = (url) => {
     counterFormatted +=  "0";
   }
   counterFormatted += counter.toString();
-  console.log(`${counterFormatted}. Getting data from link ${url}`);
-
-  request.cookie("ASP.NET_SessionId=c0i1xx34rfwyuxhh1k1jq5vg");
-
-  request({
-    url: url,
+  let opt = {
+    url: singleUrl,
+    method: "GET",
     jar: cookieJar
-  }, (error, response, body) => {
+  };
+  // console.log(`${counterFormatted}. Getting data from link ${singleUrl}, options: ${opt.url}, ${opt.jar}`);
+
+  request(opt, (error, response, body) => {
     if (error) {
       console.log("Error occurred: ", error);
       ++failureCounter;
-      failures.push(fullUrl);
+      failures.push(singleUrl);
     } else {
       console.log(`Loaded page #${counterFormatted} successfully`);
       let $ = cheerio.load(body);
-      console.log(body);
       let temp = [];
       let tempObj = {};
       // 0-3 Header
@@ -131,11 +128,15 @@ exports.get = (url) => {
 
       ++successCounter;
       exports.allData.push(temp);
-      console.log(`${counterFormatted}: Found the following data:\n`, temp);
+      // console.log(`${counterFormatted}: Found the following data:\n`, temp);
       if (successCounter + failureCounter === toDo) {
         console.log(`All URLs crawled. Successes: ${successCounter}, failures: ${failureCounter}`);
         console.log("Failed URLs: ", failures);
-        saveLinks(exports.allData, saveDest);
+        let tempArray = [];
+        for (let row of exports.allData) {
+          tempArray.push(row.join("\t"));
+        }
+        saveLinks(tempArray, saveDest);
       }
     }
 

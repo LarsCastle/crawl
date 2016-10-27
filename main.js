@@ -29,9 +29,9 @@ const dummyLinkData = [
 // ------------------------------------------------------
 // ----------- global settings --------------------------
 const targetArtLinkStem = `http://www.artvalue.com/`;
-const filesDir = `C:/crawl/`;
+const filesDir = `C:/crawling/`;
 const queryLinksUri = filesDir + "test.csv";
-const artLinksUri = filesDir + "artLinks.csv";
+const artLinksUri = filesDir + "testLinks.csv";
 const outputDataUri = filesDir + "outputData.csv";
 const loginUrl = targetArtLinkStem + "default.aspx";
 const MODE = {
@@ -102,7 +102,7 @@ if (MODE.findArtLinks) {
 
 // 2. If MODE.extractArtData:
 if (MODE.extractArtData) {
-  let artLinks = dummyLinkData; // []; // for all links in artLinksUri file
+  let artLinks = []; // for all links in artLinksUri file
   /// format of data:
   /// [url1, url2, ...]
   let dataHeader =
@@ -134,20 +134,21 @@ if (MODE.extractArtData) {
   ];
 
   const dataSavingFunc = (payload, dest) => {
-    // fs.open(dest, "w+", (err, fd) => {
-    //   if (err) {
-    //     console.log("Error when creating / opening file: ", err);
-    //   } else {
-    //     console.log("Successfully opened file ", dest);
-    //     fs.write(fd, payload.join("\n"), (err, written, str) => {
-    //       if (err) {
-    //         console.log("Error occurred when writing to file: ", err);
-    //       } else {
-    //         console.log("Successfully written data to file ", dest);
-    //       }
-    //     });
-    //   }
-    // });
+    payload.unshift(dataHeader.join("\t"));
+    fs.open(dest, "w+", (err, fd) => {
+      if (err) {
+        console.log("Error when creating / opening file: ", err);
+      } else {
+        console.log("Successfully opened file ", dest);
+        fs.write(fd, payload.join("\n"), (err, written, str) => {
+          if (err) {
+            console.log("Error occurred when writing to file: ", err);
+          } else {
+            console.log("Successfully written data to file ", dest);
+          }
+        });
+      }
+    });
     // console.log(payload);
   };
   const callDataGetter = (qs, i) => {
@@ -162,29 +163,31 @@ if (MODE.extractArtData) {
   }; // helper function to call linkGetter.get
 
 //    a) load artLinks from artLinksUri
-  // fs.readFile(artLinksUri, (err, data) => {
-  //   if (err) {
-  //     console.log(`Error occurred when reading ${artLinksUri}: `, err);
-  //   } else {
-  //     console.log("Successfully read file ", artLinksUri);
-  //     parse(data, {auto_parse: false}, (error, out) => {
-  //       if (error) {
-  //         console.log("Error occurred when parsing: ", error);
-  //       } else {
-  //         artLinks = out;
+  fs.readFile(artLinksUri, (err, data) => {
+    if (err) {
+      console.log(`Error occurred when reading ${artLinksUri}: `, err);
+    } else {
+      console.log("Successfully read file ", artLinksUri);
+      parse(data, {auto_parse: false}, (error, out) => {
+        if (error) {
+          console.log("Error occurred when parsing: ", error);
+        } else {
+          for (let row of out) {
+            artLinks.push(row[0]);
+          }
           console.log(`Loaded ${artLinks.length} links successfully.`);
 
-//    b) Execute dataGetter.get
+          //    b) Execute dataGetter.get
           let numUrls = artLinks.length;
-          console.log(`Calling dataGetter.init with ${outputDataUri}, ${numUrls}, ${loginUrl}, ${profiles[1]}`);
+          console.log(`Calling dataGetter.init with ${outputDataUri}, ${numUrls}, ${loginUrl}, ${profiles[0]}`);
           dataGetter.init(dataSavingFunc, outputDataUri, numUrls, loginUrl, profiles[0], () => {
             callDataGetter(artLinks, 0);
           });
           // set up dataGetter to save links after completion
-  //    }
-  //  });
-  // }
-  // });
+        }
+      });
+    }
+  });
 
 //    c) Append new data to outputDataUri
   // TO DO
