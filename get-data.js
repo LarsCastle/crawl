@@ -14,13 +14,13 @@ let saveLinks, saveDest, outputHeader; // saveLinks = callback for saving, saveD
 let cookieJar;
 let counter = 0;
 
-exports.init = (saveDataFunc, dest, numUrls, loginUrl, profile, callb) => {
+exports.init = (saveDataFunc, dest, numUrls, target, profile, callb) => {
   saveLinks = saveDataFunc;
   saveDest = dest;
   toDo = numUrls;
   cookieJar = request.jar();
   const options = {
-    url: loginUrl,
+    url: target.stem + target.loginPath,
     method: "POST",
     form: {
       id: 0,
@@ -35,7 +35,7 @@ exports.init = (saveDataFunc, dest, numUrls, loginUrl, profile, callb) => {
       console.log("Error upon login attempt: ", err);
       throw err;
     } else {
-      console.log(`User ${profile.user} logged in successfully. Cookies: ${cookieJar.getCookieString("http://www.artvalue.com")}`);
+      console.log(`User ${profile.user} logged in successfully. Cookies: ${cookieJar.getCookieString(target.stem)}`);
       callb();
     }
   });

@@ -5,26 +5,24 @@ console.log("main.js start");
 // ------------------- requires -------------------------
 const linkGetter = require("./get-links.js");
 const dataGetter = require("./get-data.js");
+const config = require("./config.js");
 const fs = require("fs");
 const parse = require("csv-parse");
 
 // ------------------------------------------------------
-// ----------- global settings --------------------------
-const targetArtLinkStem = `http://www.artvalue.com/`;
-const filesDir = `C:/crawling/`;
-const queryLinksUri = filesDir + "test.csv";
-const artLinksUri = filesDir + "artLinks-test.csv";
-const outputDataUri = filesDir + "outputData.csv";
-const loginUrl = targetArtLinkStem + "default.aspx";
-const MODE = {
-  "findArtLinks": false,
-  "extractArtData": true
-}; // activates subfunctions
+// ---- transferring global settings from config.js -----
+const target = config.target;
+const dir = config.dir;
+const profiles = config.profiles;
+const MODE = config.mode;
 
+const queryUri = dir.root + dir.queryFile;
+const linksUri = dir.root + dir.linksFile;
+const outputDataUri = dir.root + dir.outputFile;
 // ------------------------------------------------------
 
-// 1. If MODE.findArtLinks:
-if (MODE.findArtLinks) {
+// 1. If MODE.findLinks:
+if (MODE.findLinks) {
   let queries = []; // nested array for queries
   /// format of queries:
   /// [[url1, resultPageCount1],[url2, resultPageCount2],...]
@@ -47,7 +45,7 @@ if (MODE.findArtLinks) {
 
   const callLinkGetter = (qs, i) => {
     console.log("Getting data - URL ", i+1);
-    linkGetter.get(qs[i][0], qs[i][1], targetArtLinkStem);
+    linkGetter.get(qs[i][0], qs[i][1], target.stem);
     if (i < qs.length - 1) {
       setTimeout(() => {
         ++i;
@@ -56,12 +54,12 @@ if (MODE.findArtLinks) {
     }
   }; // helper function to call linkGetter.get
 
-  //    a) load queries from queryLinksUri
-  fs.readFile(queryLinksUri, (err, data) => {
+  //    a) load queries from queryUri
+  fs.readFile(queryUri, (err, data) => {
     if (err) {
-      console.log(`Error occurred when reading ${queryLinksUri}: `, err);
+      console.log(`Error occurred when reading ${queryUri}: `, err);
     } else {
-      console.log("Successfully read file ", queryLinksUri);
+      console.log("Successfully read file ", queryUri);
       parse(data, {auto_parse: true}, (error, out) => {
         if (error) {
           console.log("Error occurred when parsing: ", error);
@@ -71,20 +69,20 @@ if (MODE.findArtLinks) {
 
           //    b) Execute linkGetter.get
           let numUrls = queries.reduce((prev, curr, i, arr) => prev + curr[1], 0);
-          linkGetter.init(linkSavingFunc, artLinksUri, numUrls);
+          linkGetter.init(linkSavingFunc, linksUri, numUrls);
           // set up linkGetter to save links after completion
           callLinkGetter(queries, 0);
         }
       });
     }
   });
-  //    c) Append new links to artLinksUri
+  //    c) Append new links to linksUri
   // done in callback within linkGetter. Callback is defined as "linkSavingFunc" above
 }
 
-// 2. If MODE.extractArtData:
-if (MODE.extractArtData) {
-  let artLinks = []; // for all links in artLinksUri file
+// 2. If MODE.extractData:
+if (MODE.extractData) {
+  let links = []; // for all links in linksUri file
   /// format of data:
   /// [url1, url2, ...]
   let dataHeader =
@@ -110,13 +108,6 @@ if (MODE.extractArtData) {
     "20_Sales Price",
     "21_Picture of Artwork",
     "22_Publication"]; // first line of csv file containing column headers
-
-  let profiles = [
-    {
-      user: "",
-      pw: ""
-    }
-  ];
 
   const dataSavingFunc = (payload, dest) => {
     payload.unshift(dataHeader.join("\t"));
@@ -147,26 +138,26 @@ if (MODE.extractArtData) {
     }
   }; // helper function to call linkGetter.get
 
-//    a) load artLinks from artLinksUri
-  fs.readFile(artLinksUri, (err, data) => {
+//    a) load Links from linksUri
+  fs.readFile(linksUri, (err, data) => {
     if (err) {
-      console.log(`Error occurred when reading ${artLinksUri}: `, err);
+      console.log(`Error occurred when reading ${linksUri}: `, err);
     } else {
-      console.log("Successfully read file ", artLinksUri);
+      console.log("Successfully read file ", linksUri);
       parse(data, {auto_parse: false}, (error, out) => {
         if (error) {
           console.log("Error occurred when parsing: ", error);
         } else {
           for (let row of out) {
-            artLinks.push(row[0]);
+            links.push(row[0]);
           }
-          console.log(`Loaded ${artLinks.length} links successfully.`);
+          console.log(`Loaded ${links.length} links successfully.`);
 
           //    b) Execute dataGetter.get
-          let numUrls = artLinks.length;
-          console.log(`Calling dataGetter.init with ${outputDataUri}, ${numUrls}, ${loginUrl}, ${profiles[0]}`);
-          dataGetter.init(dataSavingFunc, outputDataUri, numUrls, loginUrl, profiles[0], () => {
-            callDataGetter(artLinks, 0);
+          let numUrls = links.length;
+          console.log(`Calling dataGetter.init with ${outputDataUri}, ${numUrls}, ${target}, ${profiles[0]}`);
+          dataGetter.init(dataSavingFunc, outputDataUri, numUrls, target, profiles[0], () => {
+            callDataGetter(links, 0);
           });
           // set up dataGetter to save links after completion
         }

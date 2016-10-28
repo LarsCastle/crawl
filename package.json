@@ -1,13 +1,17 @@
 {
-  "name": "art-crawl",
-  "version": "1.0.0",
+  "name": "crawl",
+  "version": "1.1.0",
   "description": "",
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Lars von der Burg",
   "license": "ISC",
+  "repository" : {
+    "type" : "git",
+    "url" : "https://github.com/lars-castle/crawl.git"
+  },
   "dependencies": {
     "cheerio": "^0.22.0",
     "csv-parse": "^1.1.7",
