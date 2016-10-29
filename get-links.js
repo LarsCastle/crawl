@@ -10,6 +10,8 @@ let successCounter = 0; // counts how many jobs have successfully completed
 let failureCounter = 0; // counts failures
 let failures = []; // lists the failed URLs
 let saveLinks, saveDest; // saveLinks = callback for saving, saveDest = full URI that marks the file in which the links will be saved
+let redoCounter = 0;
+const REDO_PERCENTAGE = 0.05;
 
 exports.init = (saveLinksFunc, dest, numUrls) => {
   saveLinks = saveLinksFunc;
@@ -57,14 +59,21 @@ Getting links for query ${url}
         if (crawledCounter === pageCount) {
           exports.allLinks = exports.allLinks.concat(links);
           console.log(`Total of ${exports.allLinks.length} links crawled so far`);
-          if (successCounter + failureCounter === toDo) {
-            console.log(`All search URLs crawled. Successes: ${successCounter}, failures: ${failureCounter}`);
-            console.log("Failed URLs: ", failures);
-            saveLinks(exports.allLinks, saveDest);
-          }
         }
       }
-
+      if (successCounter + failureCounter === toDo) {
+        console.log(`All search URLs crawled. Successes: ${successCounter}, failures: ${failureCounter}`);
+        console.log("Failed URLs: ", failures);
+        if (failureCounter > 0 && redoCounter < toDo * REDO_PERCENTAGE) { // NEW
+          --failureCounter;
+          ++redoCounter;
+          setTimeout(() => {
+            exports.get(failures.pop(), 1, stem);
+          }, 200);
+        } else {
+          saveLinks(exports.allLinks, saveDest);
+        }
+      }
     });
   }
 
