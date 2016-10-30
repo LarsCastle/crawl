@@ -7,9 +7,11 @@ const cheerio = require("cheerio");
 let toDo = 0; // counts how many jobs have to be done
 let successCounter = 0; // counts how many jobs have successfully completed
 let failureCounter = 0; // counts failures
+let overallLinkCounter = 0;
 let failures = []; // lists the failed URLs
 let linkWriteStream; // stream to file in which the links are saved
 let redoCounter = 0;
+let queryNo = 0;
 const REDO_PERCENTAGE = 0.3;
 
 exports.init = (ws, numUrls) => {
@@ -21,11 +23,19 @@ exports.init = (ws, numUrls) => {
 };
 
 // main function
-exports.get = (url, pageCount, stem) => {
-  console.log(
+exports.get = (url, pageCount, stem, retry=false) => {
+  let thisQ = 0;
+  if (retry) {
+    console.log(`Retry of URL: ${url}`);
+  } else {
+    ++queryNo;
+    thisQ = queryNo;
+    console.log(
 `============================================================
-Getting ${pageCount} links for query ${url}
+Q${thisQ}: Getting ${pageCount} link(s) for query ${url}
 ============================================================`);
+  }
+
   let fullUrl = "";
   let linksLoaded = 0; // crawled links with current search query
   let crawledCounter = 0; // # crawled search result pages
@@ -36,27 +46,27 @@ Getting ${pageCount} links for query ${url}
     fullUrl = i===1 ? url : url+"&page="+i;
     request(fullUrl,(error, response, body) => {
       if (error) {
-        console.log(`Page ${i}/${pageCount} - error occurred: `, error);
+        console.log(`Q${thisQ}, P${i}/${pageCount} - error occurred: `, error);
         ++failureCounter;
-        failures.push(fullUrl);
+        failures.push([`Q${thisQ}, P${i}`,fullUrl]);
       } else {
         let $ = cheerio.load(body);
 
         const linkElems = $("td[height='75'] a.typonoirbold12");
         // console.log(linkElems);
         if (linkElems.length === 0) {
-          console.log(`Page ${i}/${pageCount} - error occurred: 0 links found on URL ${fullUrl}`);
+          console.log(`Q${thisQ}, P${i}/${pageCount} - error occurred: 0 links found.`);
           ++failureCounter;
-          failures.push(fullUrl);
+          failures.push([`Q${thisQ}, P${i}`,fullUrl]);
         } else {
           let linkList = [];
           linkElems.each((i) => {
-            let temp = stem + this.attribs.href;
-            linkList.push(temp);
+            let t = stem + linkElems[i].attribs.href;
+            linkList.push(t);
             // console.log(`${i+1}. Found  ${temp}`);
           });
           linksLoaded += linkList.length;
-          console.log(`Loaded page ${i}/${pageCount} successfully. ${linkList.length} -> list (n=${linksLoaded} now)`);
+          console.log(`Loaded Q${thisQ}, P${i}/${pageCount} successfully. ${linkList.length} -> list (n=${linksLoaded} now)`);
           ++successCounter;
           ++successfulSublinks;
           linkWriteStream.write(linkList.join("\n")+"\n");
@@ -65,17 +75,18 @@ Getting ${pageCount} links for query ${url}
       }
       ++crawledCounter;
       if (crawledCounter === pageCount) {
-        console.log(`Query completed. Total of ${linksLoaded} links crawled in this query - ${successfulSublinks}/${crawledCounter} successful`);
+        console.log(`Q${thisQ} completed. Total of ${linksLoaded} links crawled in this query - ${successfulSublinks}/${crawledCounter} successful`);
+        overallLinkCounter += linksLoaded;
       }
       if (successCounter + failureCounter === toDo) {
-        console.log(`All search URLs crawled. Successes: ${successCounter}, failures: ${failureCounter}`);
+        console.log(`All search queries crawled. Successes: ${successCounter}, failures: ${failureCounter}. Total of ${overallLinkCounter} links obtained.`);
         if (failureCounter > 0 && redoCounter < toDo * REDO_PERCENTAGE) {
           --failureCounter;
           ++redoCounter;
           setTimeout(() => {
             let temp = failures.pop();
-            console.log(`Retrying ${temp}...`);
-            exports.get(temp, 1, stem);
+            console.log(`Retry ${temp[0]}...`);
+            exports.get(temp[1], 1, stem, true);
           }, 250);
         } else {
           console.log("Finished. Failed URLs: ", failures);
