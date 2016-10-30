@@ -29,6 +29,7 @@ Getting links for query ${url}
   let fullUrl = "";
   let linksLoaded = 0; // crawled links with current search query
   let crawledCounter = 0; // # crawled search result pages
+  let successfulSublinks = 0;
 
   for (let i = 1; i <= pageCount; ++i) { // for every page of search results
     // console.log(`Requesting page ${i}/${pageCount}...`);
@@ -57,18 +58,18 @@ Getting links for query ${url}
           linksLoaded += linkList.length;
           console.log(`Loaded page ${i}/${pageCount} successfully. ${linkList.length} -> list (n=${linksLoaded} now)`);
           ++successCounter;
+          ++successfulSublinks;
           linkWriteStream.write(linkList.join("\n")+"\n");
           // console.log("Written to file: ", linkList);
         }
-        ++crawledCounter;
-        if (crawledCounter === pageCount) {
-          console.log(`Total of ${linksLoaded} links crawled so far`);
-        }
+      }
+      ++crawledCounter;
+      if (crawledCounter === pageCount) {
+        console.log(`Query completed. Total of ${linksLoaded} links crawled in this query - ${successfulSublinks}/${crawledCounter} successful`);
       }
       if (successCounter + failureCounter === toDo) {
         console.log(`All search URLs crawled. Successes: ${successCounter}, failures: ${failureCounter}`);
-        console.log("Failed URLs: ", failures);
-        if (failureCounter > 0 && redoCounter < toDo * REDO_PERCENTAGE) { // NEW
+        if (failureCounter > 0 && redoCounter < toDo * REDO_PERCENTAGE) {
           --failureCounter;
           ++redoCounter;
           setTimeout(() => {
