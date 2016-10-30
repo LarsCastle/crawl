@@ -4,18 +4,19 @@
 const request = require("request");
 const cheerio = require("cheerio");
 
-exports.allLinks = [];
 let toDo = 0; // counts how many jobs have to be done
 let successCounter = 0; // counts how many jobs have successfully completed
 let failureCounter = 0; // counts failures
 let failures = []; // lists the failed URLs
-let saveLinks, saveDest; // saveLinks = callback for saving, saveDest = full URI that marks the file in which the links will be saved
+let linkWriteStream; // stream to file in which the links are saved
 let redoCounter = 0;
-const REDO_PERCENTAGE = 0.2;
+const REDO_PERCENTAGE = 0.3;
 
-exports.init = (saveLinksFunc, dest, numUrls) => {
-  saveLinks = saveLinksFunc;
-  saveDest = dest;
+exports.init = (ws, numUrls) => {
+  // console.log("In get-links.init now");
+  linkWriteStream = ws;
+  linkWriteStream.on("finish", () => console.log("Closed links output file."));
+
   toDo = numUrls;
 };
 
@@ -26,7 +27,7 @@ exports.get = (url, pageCount, stem) => {
 Getting links for query ${url}
 ============================================================`);
   let fullUrl = "";
-  let links = []; // crawled links with current search query
+  let linksLoaded = 0; // crawled links with current search query
   let crawledCounter = 0; // # crawled search result pages
 
   for (let i = 1; i <= pageCount; ++i) { // for every page of search results
@@ -47,18 +48,21 @@ Getting links for query ${url}
           ++failureCounter;
           failures.push(fullUrl);
         } else {
+          let linkList = [];
           linkElems.each(function(i) {
             let temp = stem + this.attribs.href;
-            links.push(temp);
+            linkList.push(temp);
             // console.log(`${i+1}. Found  ${temp}`);
           });
-          console.log(`Loaded page ${i}/${pageCount} successfully. ${linkElems.length} -> list (n=${links.length} now)`);
+          linksLoaded += linkList.length;
+          console.log(`Loaded page ${i}/${pageCount} successfully. ${linkList.length} -> list (n=${linksLoaded} now)`);
           ++successCounter;
+          linkWriteStream.write(linkList.join("\n")+"\n");
+          // console.log("Written to file: ", linkList);
         }
         ++crawledCounter;
         if (crawledCounter === pageCount) {
-          exports.allLinks = exports.allLinks.concat(links);
-          console.log(`Total of ${exports.allLinks.length} links crawled so far`);
+          console.log(`Total of ${linksLoaded} links crawled so far`);
         }
       }
       if (successCounter + failureCounter === toDo) {
@@ -68,10 +72,13 @@ Getting links for query ${url}
           --failureCounter;
           ++redoCounter;
           setTimeout(() => {
-            exports.get(failures.pop(), 1, stem);
-          }, 200);
+            let temp = failures.pop();
+            console.log(`Retring query page ${temp}...`);
+            exports.get(temp, 1, stem);
+          }, 250);
         } else {
-          saveLinks(exports.allLinks, saveDest);
+          console.log("Finished. Failed URLs: ", failures);
+          linkWriteStream.end();
         }
       }
     });

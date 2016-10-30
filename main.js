@@ -26,22 +26,6 @@ if (MODE.findLinks) {
   let queries = []; // nested array for queries
   /// format of queries:
   /// [[url1, resultPageCount1],[url2, resultPageCount2],...]
-  const linkSavingFunc = (payload, dest) => {
-    fs.open(dest, "w+", (err, fd) => {
-      if (err) {
-        console.log("Error when creating / opening file: ", err);
-      } else {
-        console.log("Successfully opened file ", dest);
-        fs.write(fd, payload.join("\n"), (err, written, str) => {
-          if (err) {
-            console.log("Error occurred when writing to file: ", err);
-          } else {
-            console.log("Successfully written data to file ", dest);
-          }
-        });
-      }
-    });
-  };
 
   const callLinkGetter = (qs, i) => {
     console.log("Getting data - URL ", i+1);
@@ -69,15 +53,13 @@ if (MODE.findLinks) {
 
           //    b) Execute linkGetter.get
           let numUrls = queries.reduce((prev, curr, i, arr) => prev + curr[1], 0);
-          linkGetter.init(linkSavingFunc, linksUri, numUrls);
+          linkGetter.init(fs.createWriteStream(linksUri), numUrls);
           // set up linkGetter to save links after completion
           callLinkGetter(queries, 0);
         }
       });
     }
   });
-  //    c) Append new links to linksUri
-  // done in callback within linkGetter. Callback is defined as "linkSavingFunc" above
 }
 
 // 2. If MODE.extractData:
@@ -85,48 +67,7 @@ if (MODE.extractData) {
   let links = []; // for all links in linksUri file
   /// format of data:
   /// [url1, url2, ...]
-  let dataHeader =
-    ["0-3_Header",
-    "4_Auction House",
-    "5_Lot Number",
-    "6-9_Artist line",
-    // "7_Artist's Birth",
-    // "8_Artist's Death",
-    // "9_Artist Country of Origin",
-    "10_Title",
-    "11_Year of Creation",
-    "12_Signature",
-    "13_Category",
-    "14_Medium",
-    "15-17_Dimensions",
-    // "15_Height (in cm)",
-    // "16_Breadth (in cm)",
-    // "17_Depth (in cm)",
-    "18-19 Estimated Price",
-    // "18_Estimated Price Low",
-    // "19_Estimated Price High",
-    "20_Sales Price",
-    "21_Picture of Artwork",
-    "22_Publication"]; // first line of csv file containing column headers
 
-  const dataSavingFunc = (payload, dest) => {
-    payload.unshift(dataHeader.join("\t"));
-    fs.open(dest, "w+", (err, fd) => {
-      if (err) {
-        console.log("Error when creating / opening file: ", err);
-      } else {
-        console.log("Successfully opened file ", dest);
-        fs.write(fd, payload.join("\n"), (err, written, str) => {
-          if (err) {
-            console.log("Error occurred when writing to file: ", err);
-          } else {
-            console.log("Successfully written data to file ", dest);
-          }
-        });
-      }
-    });
-    // console.log(payload);
-  };
   const callDataGetter = (qs, i) => {
     console.log("Querying URL ", i+1);
     dataGetter.get(qs[i]);
@@ -134,7 +75,7 @@ if (MODE.extractData) {
       setTimeout(() => {
         ++i;
         callDataGetter(qs, i);
-      }, (1  + Math.random()*1) * 1000);
+      }, (1  + Math.random()*1) * 250);
     }
   }; // helper function to call linkGetter.get
 
@@ -155,8 +96,9 @@ if (MODE.extractData) {
 
           //    b) Execute dataGetter.get
           let numUrls = links.length;
-          console.log(`Calling dataGetter.init with ${outputDataUri}, ${numUrls}, ${target}, ${profiles[0]}`);
-          dataGetter.init(dataSavingFunc, outputDataUri, numUrls, target, profiles[0], () => {
+
+          console.log(`Calling dataGetter.init with ${outputDataUri}, ${numUrls}, ${target}, ${profiles[Math.floor(Math.random() * profiles.length)]}`);
+          dataGetter.init(fs.createWriteStream(outputDataUri), numUrls, target, profiles[Math.floor(Math.random() * profiles.length)], () => {
             callDataGetter(links, 0);
           });
           // set up dataGetter to save links after completion
@@ -164,7 +106,4 @@ if (MODE.extractData) {
       });
     }
   });
-
-//    c) Save new data in outputDataUri
-// done in callback within dataGetter. Callback is defined as "dataSavingFunc" above
 }
