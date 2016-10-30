@@ -35,7 +35,7 @@ Getting links for query ${url}
     fullUrl = i===1 ? url : url+"&page="+i;
     request(fullUrl,function(error, response, body) {
       if (error) {
-        console.log("Error occurred: ", error);
+        console.log(`Page ${i}/${pageCount} - error occurred: `, error);
         ++failureCounter;
         failures.push(fullUrl);
       } else {
@@ -44,7 +44,7 @@ Getting links for query ${url}
         const linkElems = $("td[height='75'] a.typonoirbold12");
         // console.log(linkElems);
         if (linkElems.length === 0) {
-          console.log("Error occurred: 0 links found on URL", fullUrl);
+          console.log(`Page ${i}/${pageCount} - error occurred: 0 links found on URL ${fullUrl}`);
           ++failureCounter;
           failures.push(fullUrl);
         } else {

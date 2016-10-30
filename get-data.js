@@ -4,6 +4,10 @@
 const request = require("request");
 const cheerio = require("cheerio");
 
+// //only for testing
+// const simSource = require("./simulated-source");
+// const config = require("./config");
+
 let cookieJars = {};
 let toDo = 0; // counts how many jobs have to be done
 let successCounter = 0; // counts how many jobs have successfully completed
