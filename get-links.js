@@ -11,7 +11,7 @@ let failureCounter = 0; // counts failures
 let failures = []; // lists the failed URLs
 let saveLinks, saveDest; // saveLinks = callback for saving, saveDest = full URI that marks the file in which the links will be saved
 let redoCounter = 0;
-const REDO_PERCENTAGE = 0.05;
+const REDO_PERCENTAGE = 0.2;
 
 exports.init = (saveLinksFunc, dest, numUrls) => {
   saveLinks = saveLinksFunc;
