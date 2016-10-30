@@ -24,7 +24,7 @@ exports.init = (ws, numUrls) => {
 exports.get = (url, pageCount, stem) => {
   console.log(
 `============================================================
-Getting links for query ${url}
+Getting ${pageCount} links for query ${url}
 ============================================================`);
   let fullUrl = "";
   let linksLoaded = 0; // crawled links with current search query
@@ -34,7 +34,7 @@ Getting links for query ${url}
   for (let i = 1; i <= pageCount; ++i) { // for every page of search results
     // console.log(`Requesting page ${i}/${pageCount}...`);
     fullUrl = i===1 ? url : url+"&page="+i;
-    request(fullUrl,function(error, response, body) {
+    request(fullUrl,(error, response, body) => {
       if (error) {
         console.log(`Page ${i}/${pageCount} - error occurred: `, error);
         ++failureCounter;
@@ -50,7 +50,7 @@ Getting links for query ${url}
           failures.push(fullUrl);
         } else {
           let linkList = [];
-          linkElems.each(function(i) {
+          linkElems.each((i) => {
             let temp = stem + this.attribs.href;
             linkList.push(temp);
             // console.log(`${i+1}. Found  ${temp}`);
@@ -74,7 +74,7 @@ Getting links for query ${url}
           ++redoCounter;
           setTimeout(() => {
             let temp = failures.pop();
-            console.log(`Retring query page ${temp}...`);
+            console.log(`Retrying ${temp}...`);
             exports.get(temp, 1, stem);
           }, 250);
         } else {

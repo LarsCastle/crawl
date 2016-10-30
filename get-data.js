@@ -4,10 +4,6 @@
 const request = require("request");
 const cheerio = require("cheerio");
 
-// //only for testing
-// const simSource = require("./simulated-source");
-// const config = require("./config");
-
 let cookieJars = {};
 let toDo = 0; // counts how many jobs have to be done
 let successCounter = 0; // counts how many jobs have successfully completed
@@ -17,7 +13,7 @@ let dataWriteStream; // stream to file in which the data is saved
 let cookieJar;
 let counter = 0;
 let redoCounter = 0;
-const REDO_PERCENTAGE = 0.2;
+const REDO_PERCENTAGE = 0.3;
 
 const dataHeader =
   ["0-3_Header",
@@ -75,11 +71,6 @@ exports.init = (ws, numUrls, target, profile, callb) => {
       callb();
     }
   });
-
-  // Simulated source init stuff
-  // simSource.init(config.dir.root + config.dir.testFile, () => {
-  //   callb();
-  // });
 };
 
 // main function
@@ -98,69 +89,6 @@ exports.get = (singleUrl) => {
     jar: cookieJar
   };
   // console.log(`${counterFormatted}. Getting data from link ${singleUrl}, options: ${opt.url}, ${opt.jar}`);
-
-  // get data from simSource, not real one
-  // simSource.get(opt, (error, response, body) => {
-  //   if (error) {
-  //     console.log("Error occurred: ", error);
-  //     ++failureCounter;
-  //     failures.push(singleUrl);
-  //   } else {
-  //     console.log(`Loaded page #${counterFormatted} successfully`);
-  //     let temp = [];
-  //     let tempObj = body;
-  //     // 0-3 Header
-  //     temp.push(tempObj.header);
-  //     // 4 Auction house / image URL of auction house
-  //     temp.push(tempObj.auctionImgUrl);
-  //     // 5 Lot number
-  //     temp.push(tempObj.lot);
-  //     // 6-9 Artist line
-  //     temp.push(tempObj.artist);
-  //     // 10 Title
-  //     temp.push(tempObj.title);
-  //     // 11 Year of Creation
-  //     temp.push(tempObj.creationYear);
-  //     // 12 Signature
-  //     temp.push(tempObj.signature);
-  //     // 13 Category
-  //     temp.push(tempObj.category);
-  //     // 14 Medium
-  //     temp.push(tempObj.medium);
-  //     // 15-17 Dimensions
-  //     temp.push(tempObj.dimensions);
-  //     // 18-19 Estimate of price
-  //     temp.push(tempObj.priceEstimate);
-  //     // 20 Selling price
-  //     temp.push(tempObj.price);
-  //     // 21 Image URL
-  //     temp.push(tempObj.image);
-  //     // 22 Publication
-  //     temp.push(tempObj.publication);
-  //
-  //     // console.log(tempObj);
-  //
-  //     ++successCounter;
-  //     dataWriteStream.write(temp.join("\t")+"\n");
-  //     // console.log("Written to file: ", temp);
-  //     // console.log(`${counterFormatted}: Found the following data:\n`, temp);
-  //   }
-  //   console.log(`Successes: ${successCounter} + Failures: ${failureCounter} ?= To Do: ${toDo}`);
-  //   if (successCounter + failureCounter === toDo) {
-  //     if (failureCounter > 0 && redoCounter < toDo * REDO_PERCENTAGE) { // NEW
-  //       --failureCounter;
-  //       ++redoCounter;
-  //       setTimeout(() => {
-  //         let temp = failures.pop();
-  //         console.log(`Retring URL ${temp}...`);
-  //         exports.get(temp);
-  //       }, 250);
-  //     } else {
-  //       console.log("Finished. Failed URLs: ", failures);
-  //       dataWriteStream.end();
-  //     }
-  //   }
-  // });
 
   request(opt, (error, response, body) => {
     if (error) {
