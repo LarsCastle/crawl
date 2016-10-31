@@ -36,14 +36,13 @@ Q${thisQ}: Getting ${pageCount} link(s) for query ${url}
 ============================================================`);
   }
 
-  let fullUrl = "";
   let linksLoaded = 0; // crawled links with current search query
   let crawledCounter = 0; // # crawled search result pages
   let successfulSublinks = 0;
 
   for (let i = 1; i <= pageCount; ++i) { // for every page of search results
     // console.log(`Requesting page ${i}/${pageCount}...`);
-    fullUrl = i===1 ? url : url+"&page="+i;
+    let fullUrl = i===1 ? url : url+"&page="+i;
     request(fullUrl,(error, response, body) => {
       if (error) {
         console.log(`Q${thisQ}, P${i}/${pageCount} - error occurred: `, error);
