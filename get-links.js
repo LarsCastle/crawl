@@ -85,6 +85,11 @@ ${qid}: Getting ${pageCount} link(s) for query ${url}
           console.log(`Retry update - successes: ${successCounter}, failures: ${failureCounter}, total ${overallLinkCounter}`);
         } else {
           console.log(`All search queries crawled. Successes: ${successCounter}, failures: ${failureCounter}. Total of ${overallLinkCounter} links obtained.`);
+          let fTemp = [];
+          for (let f of failures) {
+            fTemp.push(f[0]);
+          }
+          console.log("Failures so far: ", fTemp);
         }
         if (failureCounter > 0 && redoCounter < toDo * REDO_PERCENTAGE) {
           --failureCounter;
