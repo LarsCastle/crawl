@@ -28,8 +28,8 @@ if (MODE.findLinks) {
   /// [[url1, resultPageCount1],[url2, resultPageCount2],...]
 
   const callLinkGetter = (qs, i) => {
-    console.log("Getting data - URL ", i+1);
-    linkGetter.get(qs[i][0], qs[i][1], target.stem);
+    console.log("Getting data - query ", qs[i][0]);
+    linkGetter.get(qs[i][0], qs[i][1], qs[i][2], target.stem);
     if (i < qs.length - 1) {
       setTimeout(() => {
         ++i;
@@ -52,7 +52,7 @@ if (MODE.findLinks) {
           console.log(`Loaded ${queries.length} queries successfully.`);
 
           //    b) Execute linkGetter.get
-          let numUrls = queries.reduce((prev, curr, i, arr) => prev + curr[1], 0);
+          let numUrls = queries.reduce((prev, curr, i, arr) => prev + curr[2], 0);
           linkGetter.init(fs.createWriteStream(linksUri), numUrls);
           // set up linkGetter to save links after completion
           callLinkGetter(queries, 0);
@@ -69,7 +69,7 @@ if (MODE.extractData) {
   /// [url1, url2, ...]
 
   const callDataGetter = (qs, i) => {
-    console.log("Querying URL ", i+1);
+    console.log(`Querying URL ${i+1}: ${qs[i][0]}`);
     dataGetter.get(qs[i]);
     if (i < qs.length - 1) {
       setTimeout(() => {
@@ -89,9 +89,10 @@ if (MODE.extractData) {
         if (error) {
           console.log("Error occurred when parsing: ", error);
         } else {
-          for (let row of out) {
-            links.push(row[0]);
-          }
+          links = out;
+          // for (let row of out) {
+          //   links.push(row);
+          // }
           console.log(`Loaded ${links.length} links successfully.`);
 
           //    b) Execute dataGetter.get

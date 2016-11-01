@@ -23,49 +23,52 @@ exports.init = (ws, numUrls) => {
 };
 
 // main function
-exports.get = (url, pageCount, stem, retry=false) => {
+exports.get = (qid, url, pageCount, stem, retry=false) => {
   let thisQ = 0;
   if (retry) {
-    console.log(`Retry of URL: ${url}`);
+    console.log(`Retry of ${qid}`);
   } else {
     ++queryNo;
     thisQ = queryNo;
     console.log(
 `============================================================
-Q${thisQ}: Getting ${pageCount} link(s) for query ${url}
+${qid}: Getting ${pageCount} link(s) for query ${url}
 ============================================================`);
   }
-
   let linksLoaded = 0; // crawled links with current search query
   let crawledCounter = 0; // # crawled search result pages
   let successfulSublinks = 0;
 
   for (let i = 1; i <= pageCount; ++i) { // for every page of search results
     // console.log(`Requesting page ${i}/${pageCount}...`);
+    let qpid = qid;
     let fullUrl = i===1 ? url : url+"&page="+i;
+    if (!retry) {     // if this is not a retry, append the # of pages to the end of the query ID
+      qpid += `P${i===10?"10":"0"+i}`;
+    }
     request(fullUrl,(error, response, body) => {
       if (error) {
-        console.log(`Q${thisQ}, P${i}/${pageCount} - error occurred: `, error);
+        console.log(`${qpid} - error occurred: `, error);
         ++failureCounter;
-        failures.push([`Q${thisQ}, P${i}`,fullUrl]);
+        failures.push([qpid,fullUrl]);
       } else {
         let $ = cheerio.load(body);
 
         const linkElems = $("td[height='75'] a.typonoirbold12");
         // console.log(linkElems);
         if (linkElems.length === 0) {
-          console.log(`Q${thisQ}, P${i}/${pageCount} - error occurred: 0 links found.`);
+          console.log(`${qpid} - error occurred: 0 links found.`);
           ++failureCounter;
-          failures.push([`Q${thisQ}, P${i}`,fullUrl]);
+          failures.push([qpid,fullUrl]);
         } else {
           let linkList = [];
-          linkElems.each((i) => {
-            let t = stem + linkElems[i].attribs.href;
+          linkElems.each((j) => {
+            let t = `${qpid}R${j+1===100?"100":(j+1>9?"0"+(j+1):"00"+(j+1))},${stem + linkElems[j].attribs.href}`;
             linkList.push(t);
-            // console.log(`${i+1}. Found  ${temp}`);
+            // console.log(`${i+1}. Found  ${t}`);
           });
           linksLoaded += linkList.length;
-          console.log(`Loaded Q${thisQ}, P${i}/${pageCount} successfully. ${linkList.length} -> list (n=${linksLoaded} now)`);
+          console.log(`Loaded ${qpid} successfully. ${linkList.length} -> list (n=${linksLoaded} now)`);
           ++successCounter;
           ++successfulSublinks;
           linkWriteStream.write(linkList.join("\n")+"\n");
@@ -74,18 +77,22 @@ Q${thisQ}: Getting ${pageCount} link(s) for query ${url}
       }
       ++crawledCounter;
       if (crawledCounter === pageCount) {
-        console.log(`Q${thisQ} completed. Total of ${linksLoaded} links crawled in this query - ${successfulSublinks}/${crawledCounter} successful`);
+        console.log(`${qid} completed. Total of ${linksLoaded} links crawled in this query - ${successfulSublinks}/${crawledCounter} successful`);
         overallLinkCounter += linksLoaded;
       }
       if (successCounter + failureCounter === toDo) {
-        console.log(`All search queries crawled. Successes: ${successCounter}, failures: ${failureCounter}. Total of ${overallLinkCounter} links obtained.`);
+        if (retry) {
+          console.log(`Retry update - successes: ${successCounter}, failures: ${failureCounter}, total ${overallLinkCounter}`);
+        } else {
+          console.log(`All search queries crawled. Successes: ${successCounter}, failures: ${failureCounter}. Total of ${overallLinkCounter} links obtained.`);
+        }
         if (failureCounter > 0 && redoCounter < toDo * REDO_PERCENTAGE) {
           --failureCounter;
           ++redoCounter;
           setTimeout(() => {
             let temp = failures.pop();
-            console.log(`Retry ${temp[0]}...`);
-            exports.get(temp[1], 1, stem, true);
+            // console.log(`Retry ${temp[0]}...`);
+            exports.get(temp[0],temp[1], 1, stem, true);
           }, 250);
         } else {
           console.log("Finished. Failed URLs: ", failures);

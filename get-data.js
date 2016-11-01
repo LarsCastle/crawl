@@ -16,7 +16,8 @@ let redoCounter = 0;
 const REDO_PERCENTAGE = 0.3;
 
 const dataHeader =
-  ["0-3_Header",
+  ["linkID",
+  "0-3_Header",
   "4_Auction House",
   "5_Lot Number",
   "6-9_Artist line",
@@ -74,8 +75,8 @@ exports.init = (ws, numUrls, target, profile, callb) => {
 };
 
 // main function
-exports.get = (singleUrl) => {
-  console.log("In get-data.get now");
+exports.get = (row) => {
+  // console.log("In get-data.get now");
   ++counter;
   let counterFormatted = "";
   let numZeroes = 6 - counter.toString().length;
@@ -84,22 +85,26 @@ exports.get = (singleUrl) => {
   }
   counterFormatted += counter.toString();
   let opt = {
-    url: singleUrl,
+    url: row[1],
     method: "GET",
     jar: cookieJar
   };
-  // console.log(`${counterFormatted}. Getting data from link ${singleUrl}, options: ${opt.url}, ${opt.jar}`);
+  // console.log(`${counterFormatted}. Getting data from link ${row}, options: ${opt.url}, ${opt.jar}`);
 
   request(opt, (error, response, body) => {
     if (error) {
       console.log("Error occurred: ", error);
       ++failureCounter;
-      failures.push(singleUrl);
+      failures.push(row);
     } else {
-      console.log(`Loaded page #${counterFormatted} successfully`);
+      console.log(`Loaded page ${row[0]} (#${counterFormatted}) successfully`);
       let $ = cheerio.load(body);
       let temp = [];
       let tempObj = {};
+
+      // link ID
+      temp.push(row[0]);
+
       // 0-3 Header
       tempObj.header = $("#_ctl0_ContentPlaceHolder1_lblSaleTitle").text();
       temp.push(tempObj.header);
@@ -170,7 +175,7 @@ exports.get = (singleUrl) => {
         ++redoCounter;
         setTimeout(() => {
           let temp = failures.pop();
-          console.log(`Retring URL ${temp}...`);
+          console.log(`Retring URL ${temp[0]}...`);
           exports.get(temp);
         }, 250);
       } else {
