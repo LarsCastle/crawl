@@ -195,13 +195,6 @@ const clean = (str) => {
   // U+000A -> [nothing]
   const weirdCharsRegEx = /[\u{000A}\u{000D}"]/gu;
 
-  out = str.replace(weirdCharsRegEx,"");
+  out = str.replace(weirdCharsRegEx," ");
   return out;
 };
-
-const test =  `"Col. drypoint on Lana
-1) N. 79 / 125
-2) N. 84 / 125
-3) N. 84 / 125`;
-
-console.log(clean(test));
