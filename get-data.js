@@ -106,7 +106,7 @@ exports.get = (row) => {
       temp.push(row[0]);
 
       // 0-3 Header
-      tempObj.header = $("#_ctl0_ContentPlaceHolder1_lblSaleTitle").text();
+      tempObj.header = clean($("#_ctl0_ContentPlaceHolder1_lblSaleTitle").text());
       temp.push(tempObj.header);
 
       // 4 Auction house / image URL of auction house
@@ -118,11 +118,11 @@ exports.get = (row) => {
       temp.push(tempObj.lot);
 
       // 6-9 Artist line
-      tempObj.artist = $("#_ctl0_ContentPlaceHolder1_lnkArtist").text();
+      tempObj.artist = clean($("#_ctl0_ContentPlaceHolder1_lnkArtist").text());
       temp.push(tempObj.artist);
 
       // 10 Title
-      tempObj.title = $("#_ctl0_ContentPlaceHolder1_lblTitle").text();
+      tempObj.title = clean($("#_ctl0_ContentPlaceHolder1_lblTitle").text());
       temp.push(tempObj.title);
 
       // 11 Year of Creation
@@ -138,7 +138,7 @@ exports.get = (row) => {
       temp.push(tempObj.category);
 
       // 14 Medium
-      tempObj.medium = $("#_ctl0_ContentPlaceHolder1_lblTechniqueGB").text();
+      tempObj.medium = clean($("#_ctl0_ContentPlaceHolder1_lblTechniqueGB").text());
       temp.push(tempObj.medium);
 
       // 15-17 Dimensions
@@ -186,3 +186,22 @@ exports.get = (row) => {
   });
 
 };
+
+const clean = (str) => {
+  let out;
+
+  // reg exp to replace:
+  // "  -> [nothing]
+  // U+000A -> [nothing]
+  const weirdCharsRegEx = /[\u{000A}\u{000D}"]/gu;
+
+  out = str.replace(weirdCharsRegEx,"");
+  return out;
+};
+
+const test =  `"Col. drypoint on Lana
+1) N. 79 / 125
+2) N. 84 / 125
+3) N. 84 / 125`;
+
+console.log(clean(test));
