@@ -98,7 +98,9 @@ exports.get = (row) => {
       failures.push(row);
     } else {
       console.log(`Loaded page ${row[0]} (#${counterFormatted}) successfully`);
-      let $ = cheerio.load(body);
+      const r = /<</g;
+      const myBody = body.replace(r,"&lt;");
+      let $ = cheerio.load(myBody);
       let temp = [];
       let tempObj = {};
 
@@ -122,7 +124,9 @@ exports.get = (row) => {
       temp.push(tempObj.artist);
 
       // 10 Title
-      tempObj.title = clean($("#_ctl0_ContentPlaceHolder1_lblTitle").text());
+      let myTemp = $("#_ctl0_ContentPlaceHolder1_lblTitle");
+      console.log(myTemp.html());
+      tempObj.title = clean(myTemp.text());
       temp.push(tempObj.title);
 
       // 11 Year of Creation
@@ -162,7 +166,7 @@ exports.get = (row) => {
       temp.push(tempObj.publication);
 
 
-      // console.log(tempObj);
+      console.log(temp);
 
       ++successCounter;
       dataWriteStream.write(temp.join("\t")+"\n");
