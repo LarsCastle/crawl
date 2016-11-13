@@ -124,9 +124,7 @@ exports.get = (row) => {
       temp.push(tempObj.artist);
 
       // 10 Title
-      let myTemp = $("#_ctl0_ContentPlaceHolder1_lblTitle");
-      console.log(myTemp.html());
-      tempObj.title = clean(myTemp.text());
+      tempObj.title = clean($("#_ctl0_ContentPlaceHolder1_lblTitle").text());
       temp.push(tempObj.title);
 
       // 11 Year of Creation
@@ -166,7 +164,7 @@ exports.get = (row) => {
       temp.push(tempObj.publication);
 
 
-      console.log(temp);
+      // console.log(temp);
 
       ++successCounter;
       dataWriteStream.write(temp.join("\t")+"\n");
